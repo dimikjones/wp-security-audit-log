@@ -127,6 +127,17 @@ if ( ! class_exists( '\WSAL\WP_Sensors\WP_2FA_Sensor' ) ) {
 					Alert_Manager::trigger_event( $alert_code, $variables );
 				}
 
+				// Check if backup_codes_enabled.
+				if ( $new_value['backup_codes_enabled'] !== $old_value['backup_codes_enabled'] ) {
+					$alert_code = 7817;
+					$variables  = array(
+						'changed_option' => esc_html__( 'Secondary 2FA methods Backup codes option', 'wp-security-audit-log' ),
+						'new_value'      => $new_value['backup_codes_enabled'],
+						'old_value'      => $old_value['backup_codes_enabled'] ?? '',
+					);
+					Alert_Manager::trigger_event( $alert_code, $variables );
+				}
+
 				if ( \class_exists( '\WP2FA\Admin\Controllers\Settings' ) ) {
 					$providers = \WP2FA\Admin\Controllers\Settings::get_providers();
 					$names     = \WP2FA\Admin\Controllers\Settings::get_providers_translate_names();
@@ -235,6 +246,46 @@ if ( ! class_exists( '\WSAL\WP_Sensors\WP_2FA_Sensor' ) ) {
 				);
 				Alert_Manager::trigger_event( $alert_code, $variables );
 			}
+			/* Check backup codes */
+			if ( 'wp_2fa_backup_codes' === $meta_key ) {
+				$old_backup_codes = self::$old_user_meta['wp_2fa_backup_codes'];
+
+				if ( isset( $old_backup_codes ) && ! empty( $old_backup_codes ) ) {
+					// If backup code was used for logging in.
+					if ( empty( $_meta_value ) ) {
+						$alert_code = 7816;
+						$variables  = array(
+							'codes_remaining' => count( $old_backup_codes ) - 1,
+							'EditUserLink'    => add_query_arg( 'user_id', $user_id, \network_admin_url( 'user-edit.php' ) ),
+						);
+						Alert_Manager::trigger_event( $alert_code, $variables );
+					} elseif ( count( $old_backup_codes ) > count( $_meta_value ) ) {
+						$alert_code = 7815;
+						$variables  = array(
+							'codes_remaining' => count( $old_backup_codes ) - 1,
+							'EditUserLink'    => add_query_arg( 'user_id', $user_id, \network_admin_url( 'user-edit.php' ) ),
+						);
+						Alert_Manager::trigger_event( $alert_code, $variables );
+					} else {
+						// User generated new backup codes.
+						$alert_code = 7814;
+						$variables  = array(
+							'new_codes'    => $_meta_value,
+							'old_codes'    => $old_backup_codes,
+							'EditUserLink' => add_query_arg( 'user_id', $user_id, \network_admin_url( 'user-edit.php' ) ),
+						);
+						Alert_Manager::trigger_event( $alert_code, $variables );
+					}
+				} else {
+					// User configured backup codes.
+					$alert_code = 7813;
+					$variables  = array(
+						'codes'        => $_meta_value,
+						'EditUserLink' => add_query_arg( 'user_id', $user_id, \network_admin_url( 'user-edit.php' ) ),
+					);
+					Alert_Manager::trigger_event( $alert_code, $variables );
+				}
+			}
 		}
 
 		/**
@@ -303,6 +354,10 @@ if ( ! class_exists( '\WSAL\WP_Sensors\WP_2FA_Sensor' ) ) {
 
 			if ( 'wp_2fa_enabled_methods' === $meta_key ) {
 				self::$old_user_meta['wp_2fa_enabled_methods'] = \get_user_meta( $user_id, 'wp_2fa_enabled_methods', true );
+			}
+
+			if ( 'wp_2fa_backup_codes' === $meta_key ) {
+				self::$old_user_meta['wp_2fa_backup_codes'] = \get_user_meta( $user_id, 'wp_2fa_backup_codes', true );
 			}
 		}
 

@@ -1,3 +1,9 @@
+Forked from https://github.com/Melapress/wp-security-audit-log with following modifications:
+
+Modified class-wp-2fa-sensor and corresponding class-wp-2fa-custom-alerts in order to display alerts for new sensors.
+New codes introduced: 7813, 7814, 7815, 7816, 7817
+
+
 === WP Activity Log ===
 Contributors: Melapress
 Plugin URI: https://melapress.com/wordpress-activity-log/
