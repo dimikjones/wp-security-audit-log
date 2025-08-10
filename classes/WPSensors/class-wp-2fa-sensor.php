@@ -255,15 +255,17 @@ if ( ! class_exists( '\WSAL\WP_Sensors\WP_2FA_Sensor' ) ) {
 					if ( empty( $_meta_value ) ) {
 						$alert_code = 7816;
 						$variables  = array(
-							'codes_remaining' => count( $old_backup_codes ) - 1,
-							'EditUserLink'    => add_query_arg( 'user_id', $user_id, \network_admin_url( 'user-edit.php' ) ),
+							'codes_remaining'  => count( $old_backup_codes ) - 1,
+							'used_backup_code' => get_transient( 'wp_2fa_used_backup_code_' . $user_id ),
+							'EditUserLink'     => add_query_arg( 'user_id', $user_id, \network_admin_url( 'user-edit.php' ) ),
 						);
 						Alert_Manager::trigger_event( $alert_code, $variables );
 					} elseif ( count( $old_backup_codes ) > count( $_meta_value ) ) {
 						$alert_code = 7815;
 						$variables  = array(
-							'codes_remaining' => count( $old_backup_codes ) - 1,
-							'EditUserLink'    => add_query_arg( 'user_id', $user_id, \network_admin_url( 'user-edit.php' ) ),
+							'codes_remaining'  => count( $old_backup_codes ) - 1,
+							'used_backup_code' => get_transient( 'wp_2fa_used_backup_code_' . $user_id ),
+							'EditUserLink'     => add_query_arg( 'user_id', $user_id, \network_admin_url( 'user-edit.php' ) ),
 						);
 						Alert_Manager::trigger_event( $alert_code, $variables );
 					} else {
